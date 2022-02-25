@@ -59,24 +59,26 @@ class _QuestionsPageState extends State<QuestionsPage> {
       child: Scaffold(
         body: SingleChildScrollView(
           child: SafeArea(
-              child: SizedBox(
-            height: MediaQuery.of(context).size.height * .9,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  Image.asset(
-                    'assets/logo.png',
-                    height: 32,
-                  ),
-                  const Spacer(
-                    flex: 1,
-                  ),
-                  showQuestion(currentQuestion),
-                  const Spacer(
-                    flex: 1,
-                  ),
-                ],
+              child: Center(
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height * .9,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    Image.asset(
+                      'assets/logo.png',
+                      height: 32,
+                    ),
+                    const Spacer(
+                      flex: 1,
+                    ),
+                    showQuestion(currentQuestion),
+                    const Spacer(
+                      flex: 1,
+                    ),
+                  ],
+                ),
               ),
             ),
           )),
@@ -278,7 +280,7 @@ class _QuestionsPageState extends State<QuestionsPage> {
                           child: Form(
                             key: formKey,
                             child: TextFormField(
-                              scrollPadding: const EdgeInsets.only(bottom: 30),
+                              scrollPadding: const EdgeInsets.all(210),
                               focusNode: questionNode,
                               keyboardType: TextInputType.number,
                               controller: questionControllers[currentQuestion],
