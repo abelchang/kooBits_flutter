@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -25,11 +27,12 @@ class _QuestionsPageState extends State<QuestionsPage> {
   int currentQuestion = 0;
   bool isSubmitted = false;
   SubmitResult submitResult = SubmitResult();
+  late FocusNode questionNode;
 
   @override
   void initState() {
     super.initState();
-
+    questionNode = FocusNode();
     questions = widget.questions;
     for (var i = 0; i < questions.length; i++) {
       questionControllers.add(TextEditingController());
@@ -46,38 +49,55 @@ class _QuestionsPageState extends State<QuestionsPage> {
     for (var i = 0; i < questionControllers.length; i++) {
       questionControllers[i].dispose();
     }
+    questionNode.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-          child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Image.asset(
-                'assets/logo.png',
-                height: 32,
+    return GestureDetector(
+      onTap: unfocus,
+      child: Scaffold(
+        body: SingleChildScrollView(
+          child: SafeArea(
+              child: SizedBox(
+            height: MediaQuery.of(context).size.height * .9,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Image.asset(
+                    'assets/logo.png',
+                    height: 32,
+                  ),
+                  const Spacer(
+                    flex: 1,
+                  ),
+                  showQuestion(currentQuestion),
+                  const Spacer(
+                    flex: 1,
+                  ),
+                ],
               ),
-              const Spacer(
-                flex: 1,
-              ),
-              showQuestion(currentQuestion),
-              const Spacer(
-                flex: 1,
-              ),
-            ],
-          ),
+            ),
+          )),
         ),
-      )),
+      ),
     );
+  }
+
+  unfocus() {
+    FocusScopeNode currentFocus = FocusScope.of(context);
+    if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) {
+      currentFocus.focusedChild!.unfocus();
+    }
   }
 
   resetQuestions() {
     for (var qController in questionControllers) {
       qController.text = '';
+    }
+    for (var result in answerResult) {
+      result.result = -1;
     }
     submitResult = SubmitResult();
     if (mounted) {
@@ -121,6 +141,9 @@ class _QuestionsPageState extends State<QuestionsPage> {
         setState(() {
           currentQuestion = targetQuestion;
         });
+      }
+      if (Platform.isAndroid) {
+        unfocus();
       }
     }
   }
@@ -255,6 +278,8 @@ class _QuestionsPageState extends State<QuestionsPage> {
                           child: Form(
                             key: formKey,
                             child: TextFormField(
+                              scrollPadding: const EdgeInsets.only(bottom: 30),
+                              focusNode: questionNode,
                               keyboardType: TextInputType.number,
                               controller: questionControllers[currentQuestion],
                               enabled: !isSubmitted,
@@ -270,6 +295,8 @@ class _QuestionsPageState extends State<QuestionsPage> {
                                               .length),
                               inputFormatters: [
                                 FilteringTextInputFormatter.digitsOnly,
+                                FilteringTextInputFormatter.deny(
+                                    RegExp(r'^0+')),
                               ],
                               decoration: const InputDecoration(
                                 helperText: ' ',
@@ -278,13 +305,6 @@ class _QuestionsPageState extends State<QuestionsPage> {
                                 int index = answerResult.indexWhere((element) =>
                                     element.id == questions[questionIndex].id);
                                 answerResult[index].result = int.parse(value);
-                                // if (index > 0) {
-                                //   answerResult[index].result = int.parse(value);
-                                // } else {
-                                //   answerResult.add(AnswerResult(
-                                //       id: questions[questionIndex].id,
-                                //       result: int.parse(value)));
-                                // }
                               },
                               validator: (value) {
                                 if (value!.isEmpty) {
@@ -302,7 +322,7 @@ class _QuestionsPageState extends State<QuestionsPage> {
                     ),
                     showResult(currentQuestion),
                     const SizedBox(
-                      height: 32,
+                      height: 16,
                     ),
                     showButton(),
                     const SizedBox(
